@@ -46,7 +46,7 @@ export default class TodoFilter extends React.Component{
                         <a onClick={this.handleActive.bind(this)}
                            className={classNames({selected: nowShowing === 'active'})}
                             href="#">
-                            Active
+                            Completed
 
                         </a>
                     </li >
@@ -55,7 +55,7 @@ export default class TodoFilter extends React.Component{
                         <a onClick={this.handleCompleted.bind(this)}
                            className={classNames({selected: nowShowing === 'completed'})}
                             href="#">
-                            Completed
+                            Active
 
                         </a>
                     </li>

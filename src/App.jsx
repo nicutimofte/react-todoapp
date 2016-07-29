@@ -26,11 +26,6 @@ export default class App extends Component {
                 completed:false
                 })
         });
-
-        // .todos = this.state.todos.concat({
-        //     title: title,
-        //     completed: false
-        // });
     }
     clearCompleted(){
         this.setState({todos:this.state.todos.filter(function(todo){
