@@ -1,46 +1,106 @@
 'use strict';
 import React, {Component} from 'react';
-import todoItem from './todoItem.jsx';
-import todoFilter from './todoFilter.jsx';
+import TodoItem from './TodoItem.jsx';
+import TodoFilter from './TodoFilter.jsx';
+
 
 const ALL='all';
 const ACTIVE='active';
 const COMPLETED='completed';
 var ENTER_KEY = 13;
-var todos=[];
+var key=0;
 
 export default class App extends Component {
-     constructor(props){
+    constructor(props){
         super(props);
         this.state={
+            todos: [],
             nowShowing: ALL,
             newTodo: ''
         };
      }
+    addTodo(title){
+        this.setState({
+            todos:this.state.todos.concat({
+                title:title,
+                completed:false
+                })
+        });
+
+        // .todos = this.state.todos.concat({
+        //     title: title,
+        //     completed: false
+        // });
+    }
+    clearCompleted(){
+        this.setState({todos:this.state.todos.filter(function(todo){
+            return !todo.completed;
+            })
+        });
+    }
+    extend(){
+        var newObj = {};
+        for (var i = 0; i < arguments.length; i++) {
+            var obj = arguments[i];
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    newObj[key] = obj[key];
+                }
+            }
+        }
+        return newObj;
+    }
+    destroyButton(todo){
+
+        this.setState({todos:this.state.todos.filter(function(candidate){
+            return candidate !==todo;
+            })
+        });
+    }
+    handleChange(event){
+        this.setState({newTodo: event.target.value});
+    }
+    handleClickAll(){
+      
+        this.setState({nowShowing:ALL})
+    }
+    handleClickActive(){
+        this.setState({nowShowing:ACTIVE})
+    }
+    handleClickComplete(){
+        this.setState({nowShowing:COMPLETED})
+    }
     handleNewTodoKeyDown(event){
         if(event.keyCode !== ENTER_KEY)
             return;
         event.preventDefault();
+
         var val=this.state.newTodo.trim();
         if(val){
             this.addTodo(val);
-            this.state({newTodo:''});
+            this.setState({newTodo:''});
         }
     }
-    handleChange(event){
-        this.state({newTodo: event.target.value});
+    renderTodoItem(todo) {
+        return (
+            <TodoItem
+                todo={todo}
+                key={key++}
+                onToggle={this.toggle.bind(this,todo)}
+                handleDestroyButton={this.destroyButton.bind(this,todo)}
+            />
+        )
     }
-    store(namespace,data){
-        if(data){
-          return localStorage.setItem(namespace,JSON.stringify(data));
-        }
-        var store=localstorage.getitem(namespace);
-          return(store && JSON.parse(store)) || [];
-      }
-    addTodo(title){
-        todos=todos.concat({
-            title: title, 
-            completed:false
+    toggle(todoToToggle){
+        this.setState({todos: this.state.todos.map(function (todo){
+            return todo !== todoToToggle ?
+                todo : this.extend({}, todo, {completed: !todo.completed});
+        },this)});
+    }
+    toggleAll(event){
+        this.setState({todos:this.state.todos.map(function(todo){
+            return this.extend({},todo,{completed:event.target.checked});
+            },this)
         });
     }
 
@@ -48,61 +108,80 @@ export default class App extends Component {
         var footer;
         var main;
 
-        var shownTodos=todos.filter((todo)=>{
-          switch (this.state.nowShowing){
-            case ACTIVE:
-                  return !todo.completed;
-            case COMPLETED:
-                  return todo.completed;
-            default:
-                  return true;
-          }
-        },this);
-
-        var todoItems=shownTodos.map((todo)=>{
-          return(
-              <todoItem
-                  todo={todo}
-              />
-          );
-        },this);
-
-        var activeTodoCount=todos.reduce((accum,todo)=>{
+        var shownTodos=[];
+        let todos=this.state.todos;
+        for(let i=0;i<todos.length;i++){
+            if(this.state.nowShowing === ACTIVE) {
+                if (todos[i].completed)
+                    shownTodos = shownTodos.concat(todos[i]);
+            }
+            else if(this.state.nowShowing === COMPLETED){
+                if(!todos[i].completed)
+                    shownTodos=shownTodos.concat(todos[i]);
+            }
+            else
+                shownTodos=shownTodos.concat(todos[i]);
+        }
+        var activeTodoCount=this.state.todos.reduce((accum,todo)=>{
           return todo.completed? accum : accum + 1;
         },0);
 
-        var completedCount = todos.length - activeTodoCount;
+        var completedCount = this.state.todos.length - activeTodoCount;
 
         if(activeTodoCount || completedCount){
            footer =
-               <todoFilter
-               count={activeTodoCount}
-               completedCount={completedCount}
-               nowShowing={this.state.nowShowing}
+               <TodoFilter
+                    count={shownTodos.length}
+                    completedCount={completedCount}
+                    clearCompletedButton={this.clearCompleted.bind(this)}
+                    clickedAll={this.handleClickAll.bind(this)}
+                    clickedActive={this.handleClickActive.bind(this)}
+                    clickedCompleted={this.handleClickComplete.bind(this)}
+                    nowShowing={this.state.nowShowing}
                />
         }
-        if(todos.length){
+
+        let todoItems = [];
+        shownTodos.map((todo)=>{
+            let view = this.renderTodoItem(todo);
+            if (!view) return;
+            todoItems.push(view);
+        },this);
+
+        if(this.state.todos.length>0){
           main=(
-              <ul>
-                {todoItems}
-              </ul>
+              <section className="main">
+                  <input
+                      className="toggle-all"
+                      type="checkbox"
+                      onChange={this.toggleAll.bind(this)}
+                      checked={activeTodoCount===0}
+                  />
+                  <ul className="todo-list">
+                      {todoItems}
+                  </ul>
+              </section>
+
           )
         }
+            return (
+              <div>
+                <header className="header">
+                  <input
+                      className="new-todo"
+                      type="text"
+                      placeholder="What needs to be done?"
+                      value={this.state.newTodo}
+                      onChange={this.handleChange.bind(this)}
+                      onKeyDown={this.handleNewTodoKeyDown.bind(this)}
+                  />
 
-        return (
-          <div>
-            <header>
-              <input
-                  type="text"
-                  placeholder="What needs wo be done?"
-                  value={this.state.newTodo}
-                  onChange={this.handleChange}
-                  onKeyDown={this.handleNewTodoKeyDown}  />
-            </header>
-            {main}
-            {footer}
-          </div>
-        );
+                </header>
+
+                  {main}
+                {footer}
+              </div>
+            );
       }
 }
 

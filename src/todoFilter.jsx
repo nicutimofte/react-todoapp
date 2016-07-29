@@ -1,28 +1,68 @@
 'use strict';
 import React from 'react';
-export default class todoFilter extends React.Component{
+import classNames from 'classnames/bind';
+
+export default class TodoFilter extends React.Component{
+    handleActive(){
+        this.props.clickedActive && this.props.clickedActive();
+    }
+    handleAll() {
+        this.props.clickedAll && this.props.clickedAll();
+    }
+    handleClearCompleted(){
+        this.props.clearCompletedButton && this.props.clearCompletedButton()
+    }
+    handleCompleted() {
+        this.props.clickedCompleted && this.props.clickedCompleted();
+    }
+
     render(){
+        let nowShowing=this.props.nowShowing;
+        var clearButton=null;
+        if(this.props.completedCount > 0){
+            clearButton=(
+            <button
+                    className="clear-completed"
+                    onClick={this.handleClearCompleted.bind(this)}>
+                    Clear completed
+               </button>
+            );
+        }
         return(
-            <ul>
-                <li>
-                    <a
-                        href="#/">
-                        All
-                    </a>
-                </li>
-                {" "}
-                <li>
-                    <a href="#">
-                        In progress
-                    </a>
-                </li>
-                {" "}
-                <li>
-                    <a href="#">
-                        Done
-                    </a>
-                </li>
-            </ul>
+            <footer className="footer">
+                <strong className="todo-count" >{this.props.count} left</strong>
+                <ul className="filters" >
+                    <li  >
+                        <a 
+                            onClick={this.handleAll.bind(this)}
+                            className={classNames({selected: nowShowing === 'all'})}
+                            href="#">
+
+                            All
+                        </a>
+                    </li>
+                    {"      "}
+                    <li  >
+                        <a onClick={this.handleActive.bind(this)}
+                           className={classNames({selected: nowShowing === 'active'})}
+                            href="#">
+                            Active
+
+                        </a>
+                    </li >
+                    {"      "}
+                    <li >
+                        <a onClick={this.handleCompleted.bind(this)}
+                           className={classNames({selected: nowShowing === 'completed'})}
+                            href="#">
+                            Completed
+
+                        </a>
+                    </li>
+                </ul>
+                {clearButton}
+            </footer>
+
         );
     }
-}
+};
