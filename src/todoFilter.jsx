@@ -2,7 +2,7 @@
 import React from 'react';
 import classNames from 'classnames/bind';
 
-export default class TodoFilter extends React.Component{
+class TodoFilter extends React.Component{
     handleActive(){
         this.props.clickedActive && this.props.clickedActive();
     }
@@ -65,4 +65,6 @@ export default class TodoFilter extends React.Component{
 
         );
     }
-};
+}
+
+export default TodoFilter;

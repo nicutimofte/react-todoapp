@@ -10,12 +10,13 @@ const COMPLETED='completed';
 var ENTER_KEY = 13;
 var key=0;
 
-export default class App extends Component {
+ class App extends React.Component {
     constructor(props){
         super(props);
         this.state={
             todos: [],
             nowShowing: ALL,
+            editing:null,
             newTodo: ''
         };
      }
@@ -27,11 +28,17 @@ export default class App extends Component {
                 })
         });
     }
+    cancel(){
+        this.setState({editing:null});
+    }
     clearCompleted(){
         this.setState({todos:this.state.todos.filter(function(todo){
             return !todo.completed;
             })
         });
+    }
+    edit(todo){
+        this.setState({editing:todo})
     }
     extend(){
         var newObj = {};
@@ -83,8 +90,19 @@ export default class App extends Component {
                 key={key++}
                 onToggle={this.toggle.bind(this,todo)}
                 handleDestroyButton={this.destroyButton.bind(this,todo)}
+                onEdit={this.edit.bind(this,todo)}
+                editing={this.state.editing===todo}
+                onSave={this.save.bind(this,todo)}
+                onCancel={this.cancel.bind(this)}
             />
         )
+    }
+    save(todoToSave,text){
+        this.setState({todos:this.state.todos.map(function(todo){
+            return todo!==todoToSave? todo: this.extend({},todo,{title:text});
+            },this)
+        });
+        this.setState({ editing:null});
     }
     toggle(todoToToggle){
         this.setState({todos: this.state.todos.map(function (todo){
@@ -179,4 +197,4 @@ export default class App extends Component {
             );
       }
 }
-
+export default App;
